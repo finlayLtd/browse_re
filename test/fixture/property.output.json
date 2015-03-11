@@ -14,17 +14,6 @@
         "title": "name",
         "name": "one"
       }
-    ],
-    "loc": {
-      "start": {
-        "line": 6,
-        "column": 2
-      },
-      "end": {
-        "line": 6,
-        "column": 5
-      },
-      "file": "fixture/property.input.js"
-    }
+    ]
   }
 ]

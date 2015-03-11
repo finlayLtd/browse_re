@@ -6,8 +6,7 @@ var fs = require('fs'),
   through = require('through'),
   types = require('ast-types'),
   mdeps = require('module-deps'),
-  path = require('path'),
-  extend = require('extend');
+  path = require('path');
 
 // Skip external modules. Based on http://git.io/pzPO.
 var externalModuleRegexp = process.platform === 'win32' ?
@@ -81,10 +80,7 @@ module.exports = function (index) {
   function docParserStream(data) {
 
     var code = commentShebang(fs.readFileSync(data.file, 'utf8')),
-      ast = esprima.parse(code, {
-        loc: true,
-        attachComment: true
-      }),
+      ast = esprima.parse(code, { attachComment: true }),
       docs = [];
 
     function visit(path) {
@@ -103,9 +99,6 @@ module.exports = function (index) {
                 name: node.name
               });
             }
-
-            parsedComment.loc = extend({}, path.value.loc);
-            parsedComment.loc.file = data.file;
 
             docs.push(parsedComment);
           }

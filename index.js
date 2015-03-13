@@ -6,7 +6,8 @@ var fs = require('fs'),
   through = require('through'),
   types = require('ast-types'),
   mdeps = require('module-deps'),
-  path = require('path');
+  path = require('path'),
+  extend = require('extend');
 
 // Skip external modules. Based on http://git.io/pzPO.
 var externalModuleRegexp = process.platform === 'win32' ?
@@ -14,18 +15,18 @@ var externalModuleRegexp = process.platform === 'win32' ?
   /^[\/.]/;
 
 /**
- * Detect whether a comment is a JSDoc comment: it must be a block
- * comment which starts with two asterisks, not any other number of asterisks.
+ * Detect whether a comment is a JSDoc comment: it should start with
+ * two asterisks, not any other number of asterisks.
  *
  * The code parser automatically strips out the first asterisk that's
  * required for the comment to be a comment at all, so we count the remaining
  * comments.
- * @param {Object} comment
+ * @param {String} comment
  * @return {boolean} whether it is valid
  */
-function isJSDocComment(comment) {
-  var asterisks = comment.value.match(/^(\*+)/);
-  return comment.type === 'Block' && asterisks && asterisks[ 1 ].length === 1;
+function isJSDocComment(code) {
+  var asterisks = code.match(/^(\*+)/);
+  return asterisks && asterisks[ 1 ].length === 1;
 }
 
 /**
@@ -80,51 +81,47 @@ module.exports = function (index) {
   function docParserStream(data) {
 
     var code = commentShebang(fs.readFileSync(data.file, 'utf8')),
-      ast = esprima.parse(code, { attachComment: true }),
+      ast = esprima.parse(code, {
+        loc: true,
+        attachComment: true
+      }),
       docs = [];
 
-    function makeVisitor(callback) {
-      return function (path) {
-        var node = path.value;
+    function visit(path) {
+      var node = path.value;
+      if (node.leadingComments) {
+        node.leadingComments.filter(function (c) {
+          return c.type === 'Block';
+        }).map(function (comment) {
+          if (isJSDocComment(comment.value)) {
+            var parsedComment = doctrine.parse(comment.value, { unwrap: true });
 
-        function parseComment(comment) {
-          comment = doctrine.parse(comment.value, { unwrap: true });
-          callback(comment, node);
-          docs.push(comment);
-        }
+            // Infer the function's name from its surroundings, if possible.
+            if (node.name) {
+              parsedComment = addTagDefault(parsedComment, {
+                title: 'name',
+                name: node.name
+              });
+            }
 
-        (node.leadingComments || [])
-          .filter(isJSDocComment)
-          .forEach(parseComment);
+            parsedComment.loc = extend({}, path.value.loc);
+            parsedComment.loc.file = data.file;
 
-        this.traverse(path);
-      };
-    }
+            if (path.parent.node) {
+              parsedComment.loc.code = code.substring
+                .apply(code, path.parent.node.range);
+            }
 
-    /**
-     * Infer the function's name from the context, if possible.
-     * If `inferredName` is present and `comment` does not already
-     * have a `name` tag, `inferredName` is tagged as the name.
-     * @param {Object} comment
-     * @param {string} inferredName
-     */
-    function inferName(comment, inferredName) {
-      if (inferredName) {
-        addTagDefault(comment, {
-          title: 'name',
-          name: inferredName
+            docs.push(parsedComment);
+          }
         });
       }
+      this.traverse(path);
     }
 
     types.visit(ast, {
-      visitMemberExpression: makeVisitor(function (comment, node) {
-        inferName(comment, node.property.name);
-      }),
-
-      visitIdentifier: makeVisitor(function (comment, node) {
-        inferName(comment, node.name);
-      })
+      visitMemberExpression: visit,
+      visitIdentifier: visit
     });
 
     docs.forEach(this.push);

@@ -97,9 +97,8 @@ module.exports = function () {
         ast = espree.parse(code, espreeConfig),
         stream = this;
     } catch(e) {
-      e.message += ' (' + data.file + ')';
+      e.message += '@' + data.file;
       this.emit('error', e);
-      this.emit('end');
     }
 
     types.visit(ast, {

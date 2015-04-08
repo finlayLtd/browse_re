@@ -2,9 +2,7 @@
 
 var through = require('through'),
   types = require('ast-types'),
-  n = types.namedTypes,
-  isJSDocComment = require('../lib/is_jsdoc_comment'),
-  doctrine = require('doctrine');
+  n = types.namedTypes;
 
 /**
  * Create a transform stream that uses code structure to infer
@@ -20,10 +18,6 @@ module.exports = function () {
       return tag.title === 'memberof';
     })) {
       this.push(comment);
-      return;
-    }
-
-    if (findLendsTag(comment)) {
       return;
     }
 
@@ -91,30 +85,6 @@ module.exports = function () {
       }
     }
 
-    function findLendsTag(comment) {
-      for (var i = 0; i < comment.tags.length; i++) {
-        if (comment.tags[i].title == 'lends') {
-          return comment.tags[i];
-        }
-      }
-    }
-
-    function findLendsIdentifiers(node) {
-      if (!node || !node.leadingComments) {
-        return;
-      }
-
-      for (var i = 0; i < node.leadingComments.length; i++) {
-        var comment = node.leadingComments[i];
-        if (isJSDocComment(comment)) {
-          var lendsTag = findLendsTag(doctrine.parse(comment.value, { unwrap: true }));
-          if (lendsTag) {
-            return lendsTag.description.split('.');
-          }
-        }
-      }
-    }
-
     var path = comment.context.ast;
     var identifiers;
 
@@ -136,9 +106,11 @@ module.exports = function () {
       path = path.get('key');
     }
 
-    // Foo.bar = ...;
-    // Foo.prototype.bar = ...;
-    // Foo.bar.baz = ...;
+    /*
+     * Foo.bar = ...;
+     * Foo.prototype.bar = ...;
+     * Foo.bar.baz = ...;
+     */
     if (n.MemberExpression.check(path.node)) {
       identifiers = extractIdentifiers(path);
       if (identifiers.length >= 2) {
@@ -146,22 +118,11 @@ module.exports = function () {
       }
     }
 
-    // /** @lends Foo */{ bar: ... }
-    if (n.Identifier.check(path.node) &&
-      n.Property.check(path.parent.node) &&
-      n.ObjectExpression.check(path.parent.parent.node)) {
-      // The @lends comment is sometimes attached to the first property rather than
-      // the object expression itself.
-      identifiers = findLendsIdentifiers(path.parent.parent.node) ||
-          findLendsIdentifiers(path.parent.parent.node.properties[0]);
-      if (identifiers) {
-        inferMembership(identifiers);
-      }
-    }
-
-    // Foo = { bar: ... };
-    // Foo.prototype = { bar: ... };
-    // Foo.bar = { baz: ... };
+    /*
+     * Foo = { bar: ... };
+     * Foo.prototype = { bar: ... };
+     * Foo.bar = { baz: ... };
+     */
     if (n.Identifier.check(path.node) &&
         n.Property.check(path.parent.node) &&
         n.ObjectExpression.check(path.parent.parent.node) &&
@@ -172,7 +133,9 @@ module.exports = function () {
       }
     }
 
-    // var Foo = { bar: ... }
+    /*
+     * var Foo = { bar: ... }
+     */
     if (n.Identifier.check(path.node) &&
         n.Property.check(path.parent.node) &&
         n.ObjectExpression.check(path.parent.parent.node) &&

@@ -2,32 +2,27 @@
 
 var documentation = require('../'),
   PassThrough = require('stream').PassThrough,
-
+  markdown = require('../streams/output/markdown.js'),
+  json = require('../streams/output/json.js'),
   combine = require('stream-combiner'),
-  path = require('path'),
-  fs = require('fs'),
-  vfs = require('vinyl-fs'),
-
   hierarchy = require('../streams/hierarchy.js'),
   highlight = require('../streams/highlight.js'),
-
-  json = require('../streams/output/json.js'),
-  markdown = require('../streams/output/markdown.js'),
   htmlOutput = require('../streams/output/html.js'),
-  docset = require('../streams/output/docset.js'),
-
   lint = require('../streams/lint.js'),
   github = require('../streams/github.js'),
+  fs = require('fs'),
+  vfs = require('vinyl-fs'),
   normalize = require('../streams/normalize.js'),
   flatten = require('../streams/flatten.js'),
-  filterAccess = require('../streams/filter_access.js');
+  filterAccess = require('../streams/filter_access.js'),
+  path = require('path');
 
 var yargs = require('yargs')
   .usage('Usage: $0 <command> [options]')
 
   .alias('f', 'format')
   .default('f', 'json')
-  .describe('f', 'output format, of [json, md, html, docset]')
+  .describe('f', 'output format, of [json, md, html]')
 
   .describe('lint', 'check output for common style and uniformity mistakes')
 
@@ -65,9 +60,6 @@ if (argv._.length > 0) {
 
 var formatter = {
   json: json(),
-  docset: combine([highlight(), hierarchy(), htmlOutput({
-    hideSidebar: true
-  }), docset()]),
   md: markdown({
     template: argv.mdtemplate
   }),
@@ -94,8 +86,6 @@ var docStream = documentation(inputs)
 
 if (argv.o !== 'stdout') {
   if (argv.f === 'html') {
-    docStream.pipe(vfs.dest(argv.o));
-  } else if (argv.f === 'docset') {
     docStream.pipe(vfs.dest(argv.o));
   } else {
     docStream.pipe(fs.createWriteStream(argv.o));

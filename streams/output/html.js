@@ -60,7 +60,7 @@ var BUILTINS = [
   'Uint8ClampedArray',
   'WeakMap',
   'WeakSet'
-].reduce(function (memo, name) {
+].reduce(function(memo, name) {
   memo[name.toLowerCase()] = name;
   return memo;
 }, {});
@@ -73,7 +73,7 @@ var BUILTINS = [
  * @param {Object} opts Options that can customize the output
  * @param {String} [opts.template='../../share/markdown.hbs'] Path to a Handlebars template file that
  * takes the place of the default.
- * @name html
+ * @name markdown
  * @return {stream.Transform}
  */
 module.exports = function (opts) {
@@ -201,15 +201,9 @@ module.exports = function (opts) {
     Handlebars.registerHelper('autolink', autolink);
 
     this.push(new File({
-      path: 'index.json',
-      contents: new Buffer(JSON.stringify(comments), 'utf8')
-    }));
-
-    this.push(new File({
       path: 'index.html',
       contents: new Buffer(pageTemplate({
-        docs: comments,
-        options: opts
+        docs: comments
       }), 'utf8')
     }));
   }, function () {

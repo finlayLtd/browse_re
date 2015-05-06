@@ -10,8 +10,12 @@ var mdeps = require('module-deps'),
   parse = require('./streams/parse'),
   inferName = require('./streams/infer_name'),
   inferKind = require('./streams/infer_kind'),
-  inferMembership = require('./streams/infer_membership'),
-  moduleFilters = require('./lib/module-filters');
+  inferMembership = require('./streams/infer_membership');
+
+// Skip external modules. Based on http://git.io/pzPO.
+var externalModuleRegexp = process.platform === 'win32' ?
+  /^(\.|\w:)/ :
+  /^[\/.]/;
 
 /**
  * Generate JavaScript documentation as a list of parsed JSDoc
@@ -27,9 +31,8 @@ module.exports = function (indexes, options) {
 
   var md = mdeps({
     filter: function (id) {
-      return !!options.external || moduleFilters.internalOnly(id);
-    },
-    postFilter: moduleFilters.externals(indexes, options)
+      return externalModuleRegexp.test(id);
+    }
   });
 
   if (typeof indexes === 'string') {

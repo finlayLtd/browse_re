@@ -34,11 +34,6 @@ module.exports = function () {
  */
 function inferHierarchy(comments) {
   var nameIndex = {}, i;
-
-  // We're going to iterate comments in reverse to generate the memberships so
-  // to avoid reversing the sort order we reverse the array for the name index.
-  comments.reverse();
-
   // First, create a fast lookup index of Namespace names
   // that might be used in memberof tags, and let all objects
   // have members
@@ -62,10 +57,6 @@ function inferHierarchy(comments) {
       }
     }
   }
-
-  // Now the members are in the right order but the root comments are reversed
-  // so we reverse once more.
-  comments.reverse();
 
   /**
    * Add paths to each comment, making it possible to generate permalinks

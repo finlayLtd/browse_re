@@ -5,7 +5,8 @@ var doctrine = require('doctrine'),
   through = require('through2').obj,
   types = require('ast-types'),
   extend = require('extend'),
-  isJSDocComment = require('../lib/is_jsdoc_comment');
+  isJSDocComment = require('../lib/is_jsdoc_comment'),
+  error = require('../lib/error');
 
 /**
  * Comment-out a shebang line that may sit at the top of a file,
@@ -107,14 +108,30 @@ module.exports = function () {
             unwrap: true,
             // enable parsing of optional parameters in brackets, JSDoc3 style
             sloppy: true,
-            // keep going whenever possible
-            recoverable: true
+            // `recoverable: true` is the only way to get error information out
+            recoverable: true,
+            // include line numbers
+            lineNumbers: true
           });
 
+          parsedComment.loc = comment.loc;
           parsedComment.context = {
             loc: extend({}, path.value.loc),
             file: data.file
           };
+
+          var i = 0;
+          while (i < parsedComment.tags.length) {
+            var tag = parsedComment.tags[i];
+            if (tag.errors) {
+              tag.errors.forEach(function (err) {
+                console.error(error(tag, parsedComment, err));
+              });
+              parsedComment.tags.splice(i, 1);
+            } else {
+              i++;
+            }
+          }
 
           // This is non-enumerable so that it doesn't get stringified in output; e.g. by the
           // documentation binary.

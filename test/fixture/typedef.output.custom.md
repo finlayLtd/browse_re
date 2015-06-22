@@ -1,6 +1,0 @@
-## `MyType`
-
-A type definition.
-
-
-

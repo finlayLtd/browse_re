@@ -47,6 +47,9 @@ var yargs = require('yargs')
   .alias('o', 'output')
   .default('o', 'stdout')
 
+  .describe('c', 'configuration file. an array defining explicit sort order')
+  .alias('c', 'config')
+
   .help('h')
   .alias('h', 'help')
 
@@ -93,10 +96,20 @@ if (argv.f === 'html' && argv.o === 'stdout') {
   throw new Error('The HTML output mode requires a destination directory set with -o');
 }
 
+if (argv.config) {
+  if (!fs.existsSync(path.resolve(argv.config))) {
+    yargs.showHelp();
+    throw new Error('No config file was found at ' + argv.config);
+  }
+
+  argv.config = JSON.parse(fs.readFileSync(path.resolve(argv.config)));
+}
+
 var docStream = documentation(inputs, {
     private: argv.private,
     transform: transform,
     polyglot: argv.polyglot,
+    config: argv.config,
     shallow: argv.shallow
   })
   .pipe(argv.lint ? lint() : new PassThrough({ objectMode: true }))

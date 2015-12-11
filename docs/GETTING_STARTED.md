@@ -112,6 +112,9 @@ you'll see are:
 * @example - you can use the @example tag to add code examples of how to
   use some thing inline with the thing itself
 
+It'll help to remember the available tags if your text editor highlights correct tags: if it
+doesn't, try [using a plugin for JSDoc](https://github.com/documentationjs/documentation/wiki/Text-editor-plugins).
+
 ## Flow type annotations
 
 Alternatively, [Flow](http://flowtype.org/) type annotations allows for a compacter syntax:
@@ -132,7 +135,7 @@ you want to read the code for yourself, here's a summary of how it connects
 to your task as a developer.
 
 **Inference**: JSDoc lets you specify absolutely everything about your code:
-use @name to say what something is called @kind for whether it's a function
+use @name to say what something is called, @kind for whether it's a function
 or a class, @param for its parameters, and so on. But writing all of that
 explicitly is tedious, so where it can, `documentation` can automatically
 fill in @name, @kind, and @memberof tags based on its reading of the source

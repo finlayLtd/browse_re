@@ -15,7 +15,7 @@ commands[parsedArgs.command](documentation, parsedArgs);
 function parseArgs() {
   // reset() needs to be called at parse time because the yargs module uses an
   // internal global variable to hold option state
-  var argv = addCommands(yargs, true)
+  var argv = yargs
     .usage('Usage: $0 <command> [options]')
     .version(function () {
       return require('../package').version;
@@ -108,14 +108,10 @@ function parseArgs() {
   };
 }
 
-function addCommands(parser, descriptionOnly) {
+function addCommands(parser) {
   parser = parser.demand(1);
   for (var cmd in commands) {
-    if (descriptionOnly) {
-      parser = parser.command(cmd, commands[cmd].description);
-    } else {
-      parser = parser.command(cmd, commands[cmd].description, commands[cmd].parseArgs);
-    }
+    parser = parser.command(cmd, commands[cmd].description, commands[cmd].parseArgs);
   }
   return parser.help('help');
 }

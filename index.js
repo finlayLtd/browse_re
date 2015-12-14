@@ -183,6 +183,5 @@ module.exports.expandInputs = expandInputs;
 module.exports.formats = {
   html: require('./lib/output/html'),
   md: require('./lib/output/markdown'),
-  mdast: require('./lib/output/markdown_ast'),
   json: require('./lib/output/json')
 };

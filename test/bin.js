@@ -4,8 +4,7 @@ var test = require('tap').test,
   path = require('path'),
   os = require('os'),
   exec = require('child_process').exec,
-  tmp = require('tmp'),
-  fs = require('fs-extra');
+  fs = require('fs');
 
 function documentation(args, options, callback, parseJSON) {
   if (!callback) {

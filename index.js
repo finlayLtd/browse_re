@@ -18,7 +18,6 @@ var fs = require('fs'),
   inferProperties = require('./lib/infer/properties'),
   inferMembership = require('./lib/infer/membership'),
   inferReturn = require('./lib/infer/return'),
-  inferAccess = require('./lib/infer/access'),
   formatLint = require('./lib/lint').formatLint,
   lintComments = require('./lib/lint').lintComments;
 
@@ -151,7 +150,6 @@ function buildSync(indexes, options) {
         }, [])
         .map(pipeline(
           inferName(),
-          inferAccess(options.inferPrivate),
           inferAugments(),
           inferKind(),
           inferParams(),
@@ -207,7 +205,6 @@ module.exports.lint = function lint(indexes, options, callback) {
           .map(pipeline(
             lintComments,
             inferName(),
-            inferAccess(options.inferPrivate),
             inferAugments(),
             inferKind(),
             inferParams(),

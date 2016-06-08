@@ -28,8 +28,7 @@ type Point = {
  */
 type Two = {
   x: number,
-  y: number,
-  z: ?number
+  y: number
 };
 
 /**
@@ -46,9 +45,3 @@ function veryImportantTransform(
 ): string {
   return "42";
 }
-
-
-/**
- * Function with optional parameter.
- */
-function optionalFunc(x: number = 42) {}
